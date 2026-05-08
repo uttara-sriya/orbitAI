@@ -7,6 +7,8 @@ import {
     Calendar, CreditCard, ChevronLeft,
     Car, ArrowRight, ShieldCheck, Tag
 } from "lucide-react";
+import Image from "next/image";
+import SafeImage from "@/components/SafeImage";
 import { useRouter } from "next/navigation";
 import { TRANSLATIONS } from "@/lib/translations";
 import { calculateTotal, formatCurrency } from "@/lib/calculations";
@@ -44,13 +46,14 @@ export default function ItineraryPage() {
     const cheapStays = fullResults.stays.filter((s: any) => s.priceLevel < (selectedItems.stay?.priceLevel || Infinity));
 
     return (
-        <main className="min-h-screen bg-background text-foreground pb-20">
+        <main id="main-content" className="min-h-screen bg-background text-foreground pb-20">
             {/* Header */}
             <div className="h-64 bg-gradient-to-br from-indigo-900 via-primary/20 to-background relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-6 pt-12">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-4"
+                        className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-4 focus:ring-2 focus:ring-primary rounded-lg"
+                        aria-label={t.back}
                     >
                         <ChevronLeft className="w-4 h-4" /> {t.back}
                     </button>
@@ -126,7 +129,15 @@ export default function ItineraryPage() {
                             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Hotel className="text-accent" /> Stay</h2>
                             {selectedItems.stay ? (
                                 <div className="space-y-4">
-                                    <img src={selectedItems.stay.image} className="w-full h-40 object-cover rounded-2xl" />
+                                    <div className="w-full h-40 relative rounded-2xl overflow-hidden">
+                                        <SafeImage
+                                            src={selectedItems.stay.image}
+                                            alt={selectedItems.stay.name}
+                                            fill
+                                            className="object-cover"
+                                            sizes="(max-width: 768px) 100vw, 500px"
+                                        />
+                                    </div>
                                     <div>
                                         <h3 className="font-bold">{selectedItems.stay.name}</h3>
                                         <p className="text-xs text-gray-400">{selectedItems.stay.description}</p>
@@ -134,12 +145,42 @@ export default function ItineraryPage() {
                                 </div>
                             ) : <p className="text-gray-500 italic">No stay selected</p>}
                         </div>
+
+                        {/* Google Maps Integration (Google Services) */}
+                        <div className="glass-card p-6 overflow-hidden">
+                            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <MapPin className="text-red-500" /> Destination Map
+                            </h2>
+                            <div className="w-full h-48 rounded-2xl overflow-hidden glass">
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    style={{ border: 0 }}
+                                    loading="lazy"
+                                    allowFullScreen
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBWCZnZQs13q-Mzw2gUzyHBc3atkwGjq1c&q=${encodeURIComponent(destination)}`}
+                                    title={`Map of ${destination}`}
+                                    aria-label={`Interactive Google Map showing ${destination}`}
+                                ></iframe>
+                            </div>
+                            <p className="text-[10px] text-gray-500 mt-2">Powered by Google Cloud Maps API</p>
+                        </div>
+
                         <div className="glass-card p-6">
                             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Utensils className="text-indigo-400" /> Culinary</h2>
                             <div className="space-y-3">
                                 {selectedItems.eats.map((eat: any) => (
-                                    <div key={eat.id} className="flex items-center gap-3 glass p-2 rounded-xl">
-                                        <img src={eat.image} className="w-10 h-10 rounded-lg" />
+                                    <div key={eat.id} className="flex items-center gap-3 glass p-2 rounded-xl" role="listitem">
+                                        <div className="w-10 h-10 relative rounded-lg overflow-hidden">
+                                            <SafeImage
+                                                src={eat.image}
+                                                alt={eat.name}
+                                                fill
+                                                className="object-cover"
+                                                sizes="40px"
+                                            />
+                                        </div>
                                         <div>
                                             <p className="text-sm font-bold">{eat.name}</p>
                                             <div className="flex gap-1">

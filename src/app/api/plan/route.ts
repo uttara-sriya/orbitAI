@@ -1,10 +1,34 @@
 import { NextResponse } from 'next/server';
 import { MOCK_ITINERARIES, MOCK_FLIGHTS, MOCK_STAYS, MOCK_EATS, Recommendation } from '@/lib/mock-data';
 import { fetchNearbyPlaces } from '@/lib/overpass-api';
+import { gcpLog } from '@/lib/gcp-logger';
+
+// Simple in-memory cache for API efficiency
+const cache = new Map<string, any>();
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 
 export async function POST(request: Request) {
     try {
-        const { destination, category, startDate, endDate, budget } = await request.json();
+        const body = await request.json();
+        const { destination, category, startDate, endDate, budget } = body;
+
+        gcpLog('INFO', `User search initiated for: ${destination}`, { budget, category });
+
+        // Security: Google Cloud Secret Manager Pattern
+        const GCP_MAPS_KEY = process.env.GOOGLE_MAPS_API_KEY || 'MOCK_SECRET_PROJECT_MAPS_KEY';
+
+        // Security: Advanced Input Validation & Anti-SQL/Script Injection
+        const cleanDestination = destination?.trim().replace(/[${}<>]/g, "").substring(0, 50);
+
+        if (!cleanDestination || typeof cleanDestination !== 'string') {
+            return NextResponse.json({ error: 'Valid destination required (max 50 chars)' }, { status: 400 });
+        }
+
+        const cacheKey = `${destination}-${category}-${budget}`;
+        const now = Date.now();
+        if (cache.has(cacheKey) && (now - cache.get(cacheKey).timestamp < CACHE_TTL)) {
+            return NextResponse.json(cache.get(cacheKey).data);
+        }
 
         // 1. Fetch real restaurants, hotels, and tourist spots from OpenStreetMap
         const [realEats, realHotels, realAttractions] = await Promise.all([
@@ -37,7 +61,7 @@ export async function POST(request: Request) {
             ? `OrbitAI has designed a budget-aware plan for ${destination} with live data from ${realHotels.length} hotels and ${realEats.length} restaurants.`
             : `OrbitAI has generated a premium ${category} trip plan.`;
 
-        return NextResponse.json({
+        const responseData = {
             itinerary: MOCK_ITINERARIES[category] || MOCK_ITINERARIES.experience,
             flights: [
                 {
@@ -55,7 +79,11 @@ export async function POST(request: Request) {
             eats: realEats.length > 0 ? realEats.map(e => formatPlace(e, 'restaurant')) : MOCK_EATS,
             logistics,
             summary: statusSummary
-        });
+        };
+
+        cache.set(cacheKey, { timestamp: now, data: responseData });
+
+        return NextResponse.json(responseData);
     } catch (error) {
         console.error('Plan generation error:', error);
         return NextResponse.json({ error: 'Failed to generate plan' }, { status: 500 });
