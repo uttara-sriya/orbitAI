@@ -5,8 +5,24 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "OrbitAI | Travel Planning & Experience Engine",
-    description: "Next-gen travel itinerary, flight and stay recommendations powered by AI.",
+    title: "OrbitAI | Precision Travel Planning & Experience Engine",
+    description: "Next-gen travel itinerary, flight and stay recommendations powered by AI and real-time mapping.",
+    keywords: ["travel", "AI", "itinerary", "flights", "hotels", "budget travel"],
+    openGraph: {
+        title: "OrbitAI | Travel Assistant",
+        description: "Intelligent travel planning with budget-aware recommendations.",
+        url: "https://orbit-ai-travel.vercel.app",
+        siteName: "OrbitAI",
+        images: [{ url: "https://images.unsplash.com/photo-1488646953014-85cb44e25828", width: 1200, height: 630 }],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "OrbitAI | Precision Travel Planning",
+        description: "Intelligent travel planning with budget-aware recommendations.",
+        images: ["https://images.unsplash.com/photo-1488646953014-85cb44e25828"],
+    },
 };
 
 export default function RootLayout({
