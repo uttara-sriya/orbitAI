@@ -3,17 +3,13 @@ const nextConfig = {
     reactStrictMode: true,
     output: 'standalone',
     images: {
-        domains: ['images.unsplash.com'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+            },
+        ],
     },
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
-    typescript: {
-        ignoreDuringBuilds: true,
-    },
-    experimental: {
-        // optimizePackageImports: ['lucide-react', 'framer-motion'], // Removed if unsupported in some versions
-    }
 };
 
 export default nextConfig;
