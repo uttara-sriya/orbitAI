@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+build
+.git
+.gitignore
+.dockerignore
+LICENSE
+README.md
+Dockerfile
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
